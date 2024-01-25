@@ -1,14 +1,31 @@
-create procedure avgfreight
-@CustomerID nchar(5),
-@average money output
-as 
-begin
-select @average=avg(freight) from orders where customerID= @CustomerID
-end
+CREATE PROCEDURE CalculateAverageFreight
+    @CustomerID nchar(5)
+AS
+BEGIN
+    SELECT AVG(Freight) AS AvgFreight
+    FROM Orders
+    WHERE CustomerID = @CustomerID
+END;
 
-declare @avg money
-execute avgfreight 'MORGK', @avg output
-print @avg
+CalculateAverageFreight 'BOLID'
+
+CREATE TRIGGER CheckFreight
+ON Orders
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    DECLARE @AvgFreight money;
+
+    SELECT @AvgFreight = AVG(Freight)
+    FROM Orders
+    WHERE CustomerID IN (SELECT CustomerID FROM INSERTED);
+
+    IF (SELECT MAX(Freight) FROM INSERTED) > @AvgFreight
+    BEGIN
+         THROW 50000, 'Freight exceeds average. Update or Insert canceled.', 1;
+        ROLLBACK TRANSACTION;
+    END
+END;
 
 create procedure getEmpSales
 @Country nvarchar(15),
