@@ -75,22 +75,24 @@ GetTenExProduct
 
 CREATE PROCEDURE InsertCustomerOrderDetails
     @CustomerID nchar(5),
-    @OrderID int,
     @ProductID int,
     @UnitPrice money,
     @Quantity smallint,
     @Discount real
 AS
 BEGIN
+    DECLARE @OrderID INT;
+
+    INSERT INTO Orders (CustomerID)
+    VALUES (@CustomerID);
+
+    SET @OrderID = SCOPE_IDENTITY();
+
     INSERT INTO [Order Details] (OrderID, ProductID, UnitPrice, Quantity, Discount)
     VALUES (@OrderID, @ProductID, @UnitPrice, @Quantity, @Discount);
-
-    UPDATE Orders
-    SET CustomerID = @CustomerID
-    WHERE OrderID = @OrderID;
 END;
-EXEC InsertCustomerOrderDetails 'ALFKI',12345, 11, 45.5, 2, 0.2
-SELECT * FROM [Order Details] WHERE OrderID = 12345;
+EXEC InsertCustomerOrderDetails 'ALFKI', 1, 45.5, 2, 0.2
+SELECT * FROM [Order Details] WHERE ProductID = 1;
 
 CREATE PROCEDURE UpdateCustomerOrderDetails
     @OrderID int,
